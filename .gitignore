@@ -1,0 +1,30 @@
+# Arquivos e diretórios gerados pelo Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Configurações do ambiente virtual
+venv/
+.env
+.virtualenv/
+
+# Configurações do editor
+.vscode/
+.idea/
+*.swp
+
+# Logs e arquivos temporários
+*.log
+*.tmp
+*.bak
+
+# Dependências instaladas
+pip-log.txt
+
+# Arquivos de cache do Jupyter Notebook
+.ipynb_checkpoints/
+
+# Outros arquivos desnecessários
+.DS_Store
+Thumbs.db
