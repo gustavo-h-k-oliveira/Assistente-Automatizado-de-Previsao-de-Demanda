@@ -1,10 +1,16 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, Date
 from database import Base
 
-class RegistroDemanda(Base):
-    __tablename__ = "demanda"
+class DemandaPreprocessada(Base):
+    __tablename__ = "demanda_preprocessada"
 
     id = Column(Integer, primary_key=True, index=True)
     produto = Column(String, index=True)
-    data = Column(String)         # Ajustaremos para datetime mais tarde
+    categoria = Column(String)
+    data = Column(Date)
     quantidade = Column(Float)
+    preco_unitario = Column(Float)
+    regiao = Column(String)
+    ano = Column(Integer)
+    mes = Column(Integer)
+    dia_semana = Column(String)
