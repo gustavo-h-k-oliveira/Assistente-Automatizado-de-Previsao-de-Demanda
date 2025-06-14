@@ -3,9 +3,22 @@ from fastapi.responses import JSONResponse
 import pandas as pd
 import os
 from typing import Optional
+from database import engine, Base
+from sqlalchemy import select
+from contextlib import asynccontextmanager
 
-# Cria instância do app FastAPI
-app = FastAPI(title="API de Predição de Demanda")
+from models import RegistroDemanda
+from database import SessionLocal
+
+# Novo gerenciador de ciclo de vida
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+# Cria instância do app FastAPI com lifespan
+app = FastAPI(title="API de Predição de Demanda", lifespan=lifespan)
 
 # Armazena temporariamente o DataFrame carregado
 data_store = {"df": None}
@@ -44,8 +57,18 @@ async def upload_file(file: UploadFile = File(...)):
     if df.empty:
         raise HTTPException(status_code=400, detail="Arquivo não contém dados.")
 
-    # Armazena o DataFrame em memória
+    # Armazena o DataFrame no data_store
     data_store["df"] = df
+
+    async with SessionLocal() as session:
+            for _, row in df.iterrows():
+                registro = RegistroDemanda(
+                    produto=str(row["Produto"]),
+                    data=str(row["Data"]),
+                    quantidade=float(row["Quantidade"])
+                )
+                session.add(registro)
+            await session.commit()
 
     return {
         "message": "Arquivo carregado com sucesso.",
@@ -71,3 +94,12 @@ async def get_data(linhas: Optional[int] = 10):
         raise HTTPException(status_code=500, detail=f"Erro ao processar dados: {e}")
 
     return JSONResponse(content=data_json)
+
+@app.get("/registros/")
+async def listar_registros():
+    async with SessionLocal() as session:
+        result = await session.execute(
+            select(RegistroDemanda).limit(10)
+        )
+        registros = result.scalars().all()
+        return [r.__dict__ for r in registros]
