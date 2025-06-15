@@ -159,3 +159,4 @@ async def listar_preprocessados(limit: int = 20):
         result = await session.execute(select(DemandaPreprocessada).limit(limit))
         registros = result.scalars().all()
         return [r.__dict__ for r in registros]
+    
