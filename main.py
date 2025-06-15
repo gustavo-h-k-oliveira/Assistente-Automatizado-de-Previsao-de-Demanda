@@ -6,9 +6,8 @@ from typing import Optional
 from database import engine, Base
 from sqlalchemy import select
 from contextlib import asynccontextmanager
-import datetime
 
-from utils import preprocessar_dataframe
+from services.preprocessamento import preprocessar_dados  # <-- use o novo preprocessamento
 from models import DemandaPreprocessada
 from database import SessionLocal
 
@@ -62,69 +61,14 @@ async def upload_file(file: UploadFile = File(...)):
     # Armazena o DataFrame no data_store
     data_store["df"] = df
 
-    # Novo bloco de código sugerido
-    df["Data"] = pd.to_datetime(df["Data"])
-    df["ano"] = df["Data"].dt.year
-    df["mes"] = df["Data"].dt.month
-    df["dia_semana"] = df["Data"].dt.day_name()
-
-    async with SessionLocal() as session:
-            for _, row in df.iterrows():
-                registro = DemandaPreprocessada(
-                    produto=str(row["Produto"]),
-                    categoria=str(row["Categoria"]),
-                    data=row["Data"].date() if isinstance(row["Data"], (pd.Timestamp, datetime.datetime)) else row["Data"],
-                    quantidade=float(row["Quantidade"]),
-                    preco_unitario=float(row["Preço Unitário"]),
-                    regiao=str(row["Região"]),
-                    ano=int(row["ano"]),
-                    mes=int(row["mes"]),
-                    dia_semana=str(row["dia_semana"])
-                )
-                session.add(registro)
-            await session.commit()
+    # Chama o novo preprocessamento e salva no banco
+    await preprocessar_dados(df)
 
     return {
-        "message": "Arquivo carregado com sucesso.",
+        "message": "Arquivo carregado e pré-processado com sucesso.",
         "rows": len(df),
         "columns": df.columns.tolist()
     }
-
-@app.get("/preprocessar/")
-async def preprocessar():
-    async with SessionLocal() as session:
-        result = await session.execute(select(DemandaPreprocessada))
-        dados = result.scalars().all()
-
-        df = pd.DataFrame([{
-            "Data": r.data,
-            "Produto": r.produto,
-            "Categoria": getattr(r, "categoria", "indefinida"),
-            "Quantidade": r.quantidade,
-            "Preço Unitário": getattr(r, "preco_unitario", 0.0),
-            "Região": getattr(r, "regiao", "indefinida")
-        } for r in dados])
-
-        df_processado = preprocessar_dataframe(df)
-
-        # Salvar os dados no banco
-        for _, row in df_processado.iterrows():
-            registro = DemandaPreprocessada(
-                produto=row["Produto"],
-                categoria=row["Categoria"],
-                data=row["Data"].date() if isinstance(row["Data"], (pd.Timestamp, datetime.datetime)) else row["Data"],
-                quantidade=row["Quantidade"],
-                preco_unitario=row["Preço Unitário"],
-                regiao=row["Região"],
-                ano=row["ano"],
-                mes=row["mes"],
-                dia_semana=row["dia_semana"]
-            )
-            session.add(registro)
-
-        await session.commit()
-
-        return df_processado.to_dict(orient="records")
 
 @app.get("/dados/")
 async def get_data(linhas: Optional[int] = 10):
@@ -151,7 +95,20 @@ async def listar_registros():
             select(DemandaPreprocessada).limit(10)
         )
         registros = result.scalars().all()
-        return [r.__dict__ for r in registros]
+        return [
+            {
+                "produto": r.produto,
+                "categoria": r.categoria,
+                "data": str(r.data),
+                "quantidade": r.quantidade,
+                "regiao": r.regiao,
+                "preco_unitario": r.preco_unitario,
+                "ano": r.ano,
+                "mes": r.mes,
+                "dia_semana": r.dia_semana,
+            }
+            for r in registros
+        ]
 
 @app.get("/preprocessados/")
 async def listar_preprocessados(limit: int = 20):
@@ -159,4 +116,3 @@ async def listar_preprocessados(limit: int = 20):
         result = await session.execute(select(DemandaPreprocessada).limit(limit))
         registros = result.scalars().all()
         return [r.__dict__ for r in registros]
-    

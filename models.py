@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date
+from sqlalchemy import Column, Integer, String, Float, Date, Boolean
 from database import Base
 
 class DemandaPreprocessada(Base):
@@ -14,3 +14,10 @@ class DemandaPreprocessada(Base):
     ano = Column(Integer)
     mes = Column(Integer)
     dia_semana = Column(String)
+    
+    # Campos extras para predição:
+    dia_mes = Column(Integer)
+    semana_ano = Column(Integer)
+    fim_de_semana = Column(Boolean)
+    dias_desde_inicio = Column(Integer)
+    tendencia_local = Column(Float)

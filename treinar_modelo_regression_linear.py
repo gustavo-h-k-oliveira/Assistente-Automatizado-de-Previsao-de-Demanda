@@ -27,7 +27,12 @@ async def carregar_dados():
             "ano": d.ano,
             "mes": d.mes,
             "dia_semana": d.dia_semana,
-            "preco_unitario": d.preco_unitario
+            "preco_unitario": d.preco_unitario,
+            "dia_mes": d.dia_mes,
+            "semana_ano": d.semana_ano,
+            "fim_de_semana": d.fim_de_semana,
+            "dias_desde_inicio": d.dias_desde_inicio,
+            "tendencia_local": d.tendencia_local
         } for d in dados])
         return df
 
