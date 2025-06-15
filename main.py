@@ -152,3 +152,10 @@ async def listar_registros():
         )
         registros = result.scalars().all()
         return [r.__dict__ for r in registros]
+
+@app.get("/preprocessados/")
+async def listar_preprocessados(limit: int = 20):
+    async with SessionLocal() as session:
+        result = await session.execute(select(DemandaPreprocessada).limit(limit))
+        registros = result.scalars().all()
+        return [r.__dict__ for r in registros]
