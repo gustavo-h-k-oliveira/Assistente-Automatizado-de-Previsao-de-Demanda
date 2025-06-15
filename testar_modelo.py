@@ -2,7 +2,7 @@ import pandas as pd
 import joblib
 
 # Carregar o modelo treinado
-modelo = joblib.load("modelos/modelo_demanda.pkl")
+modelo = joblib.load("modelos/modelo_xgboost.pkl")
 
 # Criar uma entrada de teste (mock)
 # Você pode editar os valores conforme suas categorias
