@@ -20,11 +20,13 @@ Os valores foram gerados aleatoriamente em um período de 2 meses.
 1. **Regressão Linear**
 
     * ***MSE***: 13936.888401142032
+
     * ***R²***: 0.013103048003078599 → explica 1,3% da variação (muito baixa)
 
 2. **XGBosst**
 
     * ***MSE***: 11539.833851819072
+
     * ***R²***: 0.1828429325746832 → explica 18,2% da variação
 
 ## Atualização do dataset
@@ -36,9 +38,44 @@ Incluindo novos campos derivados (`dia_mes`, `semana_ano`, `fim_de_semana`, `dia
 1. **Regressão Linear**
 
     * ***MSE***: 7170.282486176355
+
     * ***R²***: 0.3279559588311879 → explica 32,7% da variação
 
 2. **XGBosst**
 
     * ***MSE***: 6804.083921733312
+
     * ***R²***: 0.36227839502432 → explica 36,2% da variação
+
+## Modelo Preditivo
+
+Recebe dados e retorna uma previsão de demanda utilizando o endpoint `/prever` com base no modelo carregado em `previsao.py`.
+
+Exemplo de uso:
+
+```json
+{
+  "produto": "Produto A",
+  "categoria": "Bebidas",
+  "data": "2023-08-15",
+  "regiao": "Nordeste",
+  "preco_unitario": 5.0,
+  "quantidade_anterior": 130
+}
+```
+
+Retorna:
+
+```json
+{
+  "previsao": 230.82
+}
+```
+
+## Adição do modelo Random Forest
+
+Métrica de avaliação do modelo:
+
+* ***MSE***: 6084.352241860466
+
+* ***R²***: 0.4297361817477131 → Explica 42,9% da variação
