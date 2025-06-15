@@ -1,12 +1,15 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 import pandas as pd
+import numpy as np
 import os
 from typing import Optional
 from database import engine, Base
 from sqlalchemy import select
 from contextlib import asynccontextmanager
 
+from schemas import DadosPrevisao
+from services.previsao import carregar_modelo, preparar_entrada
 from services.preprocessamento import preprocessar_dados  # <-- use o novo preprocessamento
 from models import DemandaPreprocessada
 from database import SessionLocal
@@ -116,3 +119,18 @@ async def listar_preprocessados(limit: int = 20):
         result = await session.execute(select(DemandaPreprocessada).limit(limit))
         registros = result.scalars().all()
         return [r.__dict__ for r in registros]
+    
+@app.post("/prever")
+async def prever_dados(dados: DadosPrevisao):
+    modelo = carregar_modelo()
+    entrada = preparar_entrada(dados)
+
+    # Garante compatibilidade com colunas do treino
+    colunas_esperadas = modelo.feature_names_in_
+    for col in colunas_esperadas:
+        if col not in entrada.columns:
+            entrada[col] = 0
+    entrada = entrada[colunas_esperadas]
+
+    previsao = modelo.predict(entrada)
+    return {"previsao": float(np.round(previsao[0], 2))}
