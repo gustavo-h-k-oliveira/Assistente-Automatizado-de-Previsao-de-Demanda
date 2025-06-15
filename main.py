@@ -1,5 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse
+
 import pandas as pd
 import numpy as np
 import os
@@ -9,8 +11,9 @@ from sqlalchemy import select
 from contextlib import asynccontextmanager
 
 from schemas import DadosPrevisao
+from services.importancia import gerar_grafico_importancia
 from services.previsao import carregar_modelo, preparar_entrada
-from services.preprocessamento import preprocessar_dados  # <-- use o novo preprocessamento
+from services.preprocessamento import preprocessar_dados
 from models import DemandaPreprocessada
 from database import SessionLocal
 
@@ -134,3 +137,11 @@ async def prever_dados(dados: DadosPrevisao):
 
     previsao = modelo.predict(entrada)
     return {"previsao": float(np.round(previsao[0], 2))}
+
+@app.get("/importancia")
+def mostrar_importancia():
+    caminho_imagem = "static/importancia.png"
+    gerar_grafico_importancia(caminho_imagem=caminho_imagem)
+    if os.path.exists(caminho_imagem):
+        return FileResponse(caminho_imagem, media_type="image/png")
+    return {"erro": "Imagem não encontrada"}
