@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 
 def carregar_modelo():
-    return joblib.load("modelos/modelo_xgboost.pkl")
+    return joblib.load("modelos/modelo_random_forest.pkl")
 
 def preparar_entrada(dados):
     data = pd.to_datetime(dados.data)
