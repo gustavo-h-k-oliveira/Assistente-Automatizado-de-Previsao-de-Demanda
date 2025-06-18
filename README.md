@@ -72,10 +72,18 @@ Retorna:
 }
 ```
 
-## Adição do modelo Random Forest
+## Adição do modelo Random Forest e LightGBM
 
-Métrica de avaliação do modelo:
+Métrica de avaliação dos modelos:
 
-* ***MSE***: 6084.352241860466
+1. **Random Forest**
 
-* ***R²***: 0.4297361817477131 → Explica 42,9% da variação
+    * ***MSE***: 6084.352241860466
+
+    * ***R²***: 0.4297361817477131 → Explica 42,9% da variação
+
+2. **LightGBM**
+
+    * ***MSE***: 6353.568801762835
+
+    * ***R²***: 0.40450350992269624 → Explica 40,4% da variação
