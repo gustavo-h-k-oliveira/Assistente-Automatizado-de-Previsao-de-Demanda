@@ -1,10 +1,14 @@
 # services/previsao.py
 import joblib
 import pandas as pd
-from datetime import datetime
 
-def carregar_modelo():
-    return joblib.load("modelos/modelo_random_forest.pkl")
+from models import PrevisaoHistorico
+from sqlalchemy.ext.asyncio import AsyncSession
+from database import SessionLocal
+
+def carregar_modelo(modelo_nome="random_forest"): # Modelo padrão
+    caminho = f"modelos/modelo_{modelo_nome}.pkl"
+    return joblib.load(caminho), modelo_nome
 
 def preparar_entrada(dados):
     data = pd.to_datetime(dados.data)
@@ -29,3 +33,16 @@ def preparar_entrada(dados):
     # Conversão de categorias para dummies (igual ao treino)
     entrada = pd.get_dummies(entrada)
     return entrada
+
+async def salvar_previsao(dados, resultado, modelo_nome):
+    async with SessionLocal() as session:
+        nova = PrevisaoHistorico(
+            produto=dados.produto,
+            categoria=dados.categoria,
+            regiao=dados.regiao,
+            preco_unitario=dados.preco_unitario,
+            quantidade_prevista=resultado,
+            modelo_usado=modelo_nome
+        )
+        session.add(nova)
+        await session.commit()

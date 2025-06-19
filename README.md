@@ -2,6 +2,12 @@
 
 O Assistente Automatizado de Previsão de Demanda é responsável por receber planilhas Excel, garantir o seu upload em um local predefinido, analisar os dados utilizando algoritmos de aprendizado de máquina e fornecer previsões detalhadas de demanda para cada item listado.
 
+## Execução do código
+
+```bash
+uvicorn main:app --reload
+```
+
 ## Estrutura inicial do dataset
 
 Para a realização de testes, será utilizado uma base de dados fictícia em `.xlsx` com as seguintes colunas:
@@ -49,7 +55,7 @@ Incluindo novos campos derivados (`dia_mes`, `semana_ano`, `fim_de_semana`, `dia
 
 ## Modelo Preditivo
 
-Recebe dados e retorna uma previsão de demanda utilizando o endpoint `/prever` com base no modelo carregado em `previsao.py`.
+Recebe dados e retorna uma previsão de demanda utilizando o endpoint `/prever` com base no modelo carregado em `previsao.py`. A seleção do modelo é feito através do parâmetro da função `carregar_modelo`, em `main.py`.
 
 Exemplo de uso:
 

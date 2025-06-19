@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 
 from schemas import DadosPrevisao
 from services.importancia import gerar_grafico_importancia
-from services.previsao import carregar_modelo, preparar_entrada
+from services.previsao import carregar_modelo, preparar_entrada, salvar_previsao
 from services.preprocessamento import preprocessar_dados
 from models import DemandaPreprocessada
 from database import SessionLocal
@@ -125,7 +125,7 @@ async def listar_preprocessados(limit: int = 20):
     
 @app.post("/prever")
 async def prever_dados(dados: DadosPrevisao):
-    modelo = carregar_modelo()
+    modelo, modelo_nome = carregar_modelo("lightgbm") # Nome do modelo a ser carregado
     entrada = preparar_entrada(dados)
 
     # Garante compatibilidade com colunas do treino
@@ -136,6 +136,9 @@ async def prever_dados(dados: DadosPrevisao):
     entrada = entrada[colunas_esperadas]
 
     previsao = modelo.predict(entrada)
+
+    await salvar_previsao(dados, float(previsao[0]), modelo_nome)
+
     return {"previsao": float(np.round(previsao[0], 2))}
 
 @app.get("/importancia")
@@ -145,3 +148,25 @@ def mostrar_importancia():
     if os.path.exists(caminho_imagem):
         return FileResponse(caminho_imagem, media_type="image/png")
     return {"erro": "Imagem não encontrada"}
+
+from models import PrevisaoHistorico
+from sqlalchemy.future import select
+
+@app.get("/historico_previsoes")
+async def listar_previsoes():
+    async with SessionLocal() as session:
+        result = await session.execute(select(PrevisaoHistorico).order_by(PrevisaoHistorico.data.desc()))
+        previsoes = result.scalars().all()
+        return [
+            {
+                "id": p.id,
+                "data": p.data.isoformat(),
+                "produto": p.produto,
+                "categoria": p.categoria,
+                "regiao": p.regiao,
+                "preco_unitario": p.preco_unitario,
+                "quantidade_prevista": p.quantidade_prevista,
+                "modelo_usado": p.modelo_usado
+            }
+            for p in previsoes
+        ]

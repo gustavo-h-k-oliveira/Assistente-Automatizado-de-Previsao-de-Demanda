@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Date, Boolean
+from sqlalchemy import Column, Integer, String, Float, Date, Boolean, DateTime
+from datetime import datetime, timezone
 from database import Base
 
 class DemandaPreprocessada(Base):
@@ -21,3 +22,16 @@ class DemandaPreprocessada(Base):
     fim_de_semana = Column(Boolean)
     dias_desde_inicio = Column(Integer)
     tendencia_local = Column(Float)
+
+class PrevisaoHistorico(Base):
+    __tablename__ = "previsao_historico"
+
+    id = Column(Integer, primary_key=True, index=True)
+    data = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    produto = Column(String)
+    categoria = Column(String)
+    regiao = Column(String)
+    preco_unitario = Column(Float)
+    quantidade_prevista = Column(Float)
+    modelo_usado = Column(String)
