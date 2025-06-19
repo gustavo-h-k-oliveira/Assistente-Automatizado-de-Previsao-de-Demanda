@@ -1,7 +1,7 @@
 # modelos/treinar_modelo_lightgbm.py
 import pandas as pd
 import lightgbm as lgb
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -50,18 +50,28 @@ def preparar_e_treinar(df):
     # Divisão em treino e teste
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Treinamento do modelo LightGBM
-    modelo = lgb.LGBMRegressor(random_state=42)
-    modelo.fit(X_train, y_train)
+    # Parâmetros para Grid Search
+    param_grid = {
+        'num_leaves': [10, 20, 30],
+        'min_data_in_leaf': [3, 5, 10],
+        'max_depth': [3, 5, 7],
+        'learning_rate': [0.01, 0.05, 0.1],
+    }
 
-    # Avaliação do modelo
-    y_pred = modelo.predict(X_test)
-    print("\n🌟 Avaliação do modelo LightGBM:")
+    modelo_base = lgb.LGBMRegressor(random_state=42)
+    grid = GridSearchCV(modelo_base, param_grid, cv=3, scoring="neg_mean_squared_error", n_jobs=-1)
+    grid.fit(X_train, y_train)
+
+    print("Melhores parâmetros encontrados:", grid.best_params_)
+
+    # Avaliação do melhor modelo
+    y_pred = grid.predict(X_test)
+    print("\n🌟 Avaliação do modelo LightGBM (Grid Search):")
     print("MSE:", mean_squared_error(y_test, y_pred))
     print("R²:", r2_score(y_test, y_pred))
 
-    # Salvar o modelo treinado
-    joblib.dump(modelo, "modelos/modelo_lightgbm.pkl")
+    # Salvar o melhor modelo treinado
+    joblib.dump(grid.best_estimator_, "modelos/modelo_lightgbm.pkl")
     print("✅ Modelo salvo em 'modelos/modelo_lightgbm.pkl'.")
 
 async def main():

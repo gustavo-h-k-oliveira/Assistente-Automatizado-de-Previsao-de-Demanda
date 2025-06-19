@@ -87,3 +87,22 @@ Métrica de avaliação dos modelos:
     * ***MSE***: 6353.568801762835
 
     * ***R²***: 0.40450350992269624 → Explica 40,4% da variação
+
+## Otimização dos hiperparâmetros para o modelo LightGBM
+
+Após a busca dos melhores hiperparâmetros usando o `GridSearchCV` do `scikit-learn`, foi definido os seguintes parâmetros:
+
+```js
+param_grid = {
+    'num_leaves': [10, 20, 30],
+    'min_data_in_leaf': [3, 5, 10],
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.01, 0.05, 0.1],
+}
+```
+
+Ao avaliar o modelo com os melhores hiperparâmetros, chegou-se às seguintes métricas:
+
+* ***MSE***: 5985.443458487636
+
+* ***R²***: 0.4390065359650144 → Explica 43,9% da variação
